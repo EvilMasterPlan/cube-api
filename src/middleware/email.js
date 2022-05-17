@@ -20,7 +20,6 @@ module.exports.validateEmail = asyncHandler(async(req, res, next) => {
 	next(err);
 });
 
-// requires `req.body.email`
 module.exports.sendWelcome = asyncHandler(async(req, res, next) => {
 
 	const to = req.body.email;
@@ -29,13 +28,37 @@ module.exports.sendWelcome = asyncHandler(async(req, res, next) => {
 	const subject = "Welcome to the Priority Cube";
 	const message = ``;
 
-	// console.log(message);
 	await aws.sendEmail(to, from, fromName, subject, message);
 
 	next();
 });
 
-// requires `req.body.email` and `req.token`;
+module.exports.sendNewAccountNotification = asyncHandler(async(req, res, next) => {
+
+	const to = req.body.email;
+
+	const from = "no-reply@prioritycube.com";
+	const fromName = "Team Cube";
+	const subject = `Welcome to Priority Cube`;
+	const message = `You have a cool new cube to try out! Do so here: www.prioritycube.com`;
+
+	let html = `
+		<html>
+			<div></div>
+			You have a cool new cube to try out! Do so here:
+			www.prioritycube.com
+			<br/>
+			<br/>
+		</html>
+	`;
+
+	// console.log(message);
+	await aws.sendEmail(to, from, fromName, subject, message, html);
+	await db.markEmailAsSent(utility.generateItemID('OBX'), 'cube', to, 'ResetPassword');
+
+	next();
+});
+
 module.exports.sendResetPasswordNotification = asyncHandler(async(req, res, next) => {
 
 	const to = req.body.email;

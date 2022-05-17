@@ -34,6 +34,14 @@ router.post('/authentication/logout', [
 	middleware.return
 ]);
 
+router.post('/account/create', [
+	validate.body(['email', 'passwordHash']),
+	authentication.createNewAccount,
+	authentication.createSession,
+	email.sendNewAccountNotification,
+	middleware.return
+]);
+
 // ===================================
 // USER
 // ===================================
