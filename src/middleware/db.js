@@ -196,7 +196,7 @@ module.exports.subscribeEmail = async (email) => {
 }
 
 module.exports.markEmailAsSent = async(outboxID, group, email, type) => {
-	const query = sql`INSERT INTO CORE_Outbox (OutboxID, Group, Email, Type) VALUES (${outboxID}, ${group}, ${email}, ${type})`;
+	const query = sql`INSERT INTO CORE_Outbox (OutboxID, \`Group\`, Email, Type) VALUES (${outboxID}, ${group}, ${email}, ${type})`;
 	const result = await pool.query(query);
 
 	return result;
