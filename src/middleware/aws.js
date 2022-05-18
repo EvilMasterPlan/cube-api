@@ -4,8 +4,6 @@ const credentials = {
     "region": "us-east-1"
 }
 
-console.log(credentials);
-
 var AWS = require('aws-sdk');
 AWS.config.update(credentials);
 const SES = new AWS.SES({apiVersion: '2010-12-01'});

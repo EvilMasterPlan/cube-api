@@ -108,6 +108,22 @@ module.exports.updateAccountToken = async (email, token, type) => {
 // ===========================================================================
 // 
 // 
+// 			~Cubes
+// 
+// 
+// ===========================================================================
+
+module.exports.getUserCubes = async (userID) => {
+	return [];
+}
+
+module.exports.getUserData = async (userID) => {
+	return {};
+}
+
+// ===========================================================================
+// 
+// 
 // 			~Authentication
 // 
 // 

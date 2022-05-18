@@ -52,7 +52,6 @@ module.exports.sendNewAccountNotification = asyncHandler(async(req, res, next) =
 		</html>
 	`;
 
-	// console.log(message);
 	await aws.sendEmail(to, from, fromName, subject, message, html);
 	await db.markEmailAsSent(utility.generateItemID('OBX'), 'cube', to, 'ResetPassword');
 
@@ -71,7 +70,6 @@ module.exports.sendResetPasswordNotification = asyncHandler(async(req, res, next
 
 	let html = ``;
 
-	// console.log(message);
 	await aws.sendEmail(to, from, fromName, subject, message, html);
 	await db.markEmailAsSent(utility.generateItemID('OBX'), 'cube', to, 'ResetPassword');
 

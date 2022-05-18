@@ -7,6 +7,7 @@ const authentication = require('../middleware/authentication.js');
 const authorization = require('../middleware/authorization.js');
 const validate = require('../middleware/validate.js');
 const analytics = require('../middleware/analytics.js');
+const cube = require('../middleware/cube.js');
 
 // ===================================
 // Test
@@ -45,6 +46,12 @@ router.post('/account/create', [
 // ===================================
 // USER
 // ===================================
+
+router.post('/me/get-profile', [
+	authentication.verifyAuthentication,
+	cube.getMe,
+	middleware.return
+]);
 
 // ===================================
 // Analytics
