@@ -10,11 +10,11 @@ module.exports.getMe = asyncHandler(async(req, res, next) => {
 	const data = await db.getUserData(userID);
 
 	req.result = {
-		user: {
+		User: {
 			...req.user,
-			data: data
+			Data: data
 		},
-		cubes: cubes
+		Cubes: cubes
 	};
 
 	next(err);

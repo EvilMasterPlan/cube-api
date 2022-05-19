@@ -118,7 +118,14 @@ module.exports.getUserCubes = async (userID) => {
 }
 
 module.exports.getUserData = async (userID) => {
-	return {};
+	const query = sql`SELECT * FROM CUBE_UserData WHERE UserID = ${userID}`;
+	const results = await pool.query(query);
+	const entries = expectResults(results);
+	let data = {};
+	entries.map(entry => {
+		data[entry.Key] = entry.Value;
+	});
+	return data;
 }
 
 // ===========================================================================
@@ -146,40 +153,7 @@ module.exports.getSession = async (sessionID) => {
 module.exports.getUserByID = async (userID) => {
 	const query = sql`SELECT users.* FROM CUBE_Users users WHERE users.UserID = ${userID}`;
 	const result = await pool.query(query);
-
 	return expectResult(result);
-};
-
-module.exports.getUserAuthorization = async (userID) => {
-	const query = sql`SELECT * FROM CUBE_Users users WHERE users.UserID = ${userID}`;
-	const results = await pool.query(query);
-
-	let user;
-
-	if (results == null || results.length === 0) {
-		return null;
-	} else {
-		results.forEach(result => {
-			if (user == null) {
-				user = {
-					UserID: result.UserID,
-					Email: result.Email,
-					Verified: result.Verified,
-					CreatedAt: result.CreatedAt,
-					Codexes: []
-				};
-			}
-			if (result.CodexID != null) {
-				user.Codexes.push({
-					CodexID: result.CodexID,
-					Role: result.Role,
-					LastEditedAt: result.LastEditedAt
-				});
-			}
-		});
-	}
-
-	return user;
 };
 
 module.exports.createSession = async (userID, sessionID, expiration) => {

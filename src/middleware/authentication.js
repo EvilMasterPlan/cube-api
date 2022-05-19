@@ -257,7 +257,7 @@ module.exports.verifyAuthentication = asyncHandler(async(req, res, next) => {
 		return next(error);
 	}
 
-	const user = await db.getUserAuthorization(session.UserID);
+	const user = await db.getUserByID(session.UserID);
 
 	if (user == null) {
 		error = new Error('unauthenticated');
