@@ -47,6 +47,13 @@ router.post('/account/create', [
 // USER
 // ===================================
 
+router.post('/setup', [
+	validate.body(['cubeNames']),
+	authentication.verifyAuthentication,
+	cube.checkSetup,
+	cube.setup
+]);
+
 router.post('/me/get-profile', [
 	authentication.verifyAuthentication,
 	cube.getMe,

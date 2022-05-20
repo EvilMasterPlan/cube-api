@@ -128,6 +128,20 @@ module.exports.getUserData = async (userID) => {
 	return data;
 }
 
+module.exports.createCubes = async (userID, cubes) => {
+	const query = sql`INSERT INTO CUBE_Cubes (CubeID, Title, Color, ItemOrder, MetricOrder) VALUES `;
+	cubes.forEach((cube, index) => {
+		if (index < cubes.length - 1) {
+			query.append(sql`(${cube.CubeID}, ${cube.Title}, ${cube.Color}, '${cube.ItemOrder}', ${cube.MetricOrder},`);
+		} else {
+			query.append(sql`(${cube.CubeID}, ${cube.Title}, ${cube.Color}, '${cube.ItemOrder}', ${cube.MetricOrder};`);
+		}
+	});
+	const result = await pool.query(query);
+
+	return result;
+}
+
 // ===========================================================================
 // 
 // 
