@@ -128,7 +128,7 @@ module.exports.getUserData = async (userID) => {
 	return data;
 }
 
-module.exports.createCubes = async (userID, cubes) => {
+module.exports.createCubes = async (cubes) => {
 	const query = sql`INSERT INTO CUBE_Cubes (CubeID, Title, Color, ItemOrder, MetricOrder) VALUES `;
 	cubes.forEach((cube, index) => {
 		if (index < cubes.length - 1) {

@@ -28,21 +28,28 @@ module.exports.checkSetup = asyncHandler(async(req, res, next) => {
 
 	if (data.setup && data.setup.length > 0) {
 		err = new Error(`You're already set up!`);
-		err.status = 404;
+		err.status = 409;
 		return next(err);
 	}
 
 	next(err);
 });
 
-module.exports.setup = asyncHandler(async(req, res, next) => {
+module.exports.setUp = asyncHandler(async(req, res, next) => {
 	let err;
 
 	const userID = req.user.UserID;
 	const cubeNames = req.body.cubeNames;
 
 	// Generate new cubes from the names
-	let cubes = [];
+	const cubes = cubeNames.map((cubeName) => {
+		return {
+			Title: cubeName,
+			MetricOrder: [],
+			ItemOrder: [],
+			CubeID: utility.generateItemID('CUB')
+		}
+	})
 	
 	await db.createCubes(cubes);
 
