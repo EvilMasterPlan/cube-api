@@ -45,13 +45,13 @@ module.exports.setUp = asyncHandler(async(req, res, next) => {
 	const cubes = cubeNames.map((cubeName) => {
 		return {
 			Title: cubeName,
-			MetricOrder: [],
-			ItemOrder: [],
 			CubeID: utility.generateItemID('CUB')
 		}
 	})
 	
-	await db.createCubes(cubes);
+	await db.createCubes(userID, cubes);
+
+	await db.setUserData(userID, "setup", "true");
 
 	next(err);
 });
