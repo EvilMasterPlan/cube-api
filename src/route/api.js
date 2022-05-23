@@ -43,16 +43,17 @@ router.post('/account/create', [
 	middleware.return
 ]);
 
-// ===================================
-// USER
-// ===================================
-
-router.post('/setup', [
+router.post('/account/setup', [
 	validate.body(['cubeNames']),
 	authentication.verifyAuthentication,
 	cube.checkSetup,
-	cube.setup
-]);
+	cube.setUp,
+	middleware.return
+])
+
+// ===================================
+// USER
+// ===================================
 
 router.post('/me/get-profile', [
 	authentication.verifyAuthentication,

@@ -128,19 +128,26 @@ module.exports.getUserData = async (userID) => {
 	return data;
 }
 
+module.exports.setUserData = async (userID, key, value) => {
+	const query = sql`INSERT INTO CUBE_UserData (UserID, \`Key\`, \`Value\`) VALUES (${userID}, ${key}, ${value})`;
+	const result = await pool.query(query);
+	return result;
+}
+
 module.exports.createCubes = async (userID, cubes) => {
-	const query = sql`INSERT INTO CUBE_Cubes (CubeID, Title, Color, ItemOrder, MetricOrder) VALUES `;
+	const query = sql`INSERT INTO CUBE_Cubes (CubeID, UserID, Title, Color, ItemOrder, MetricOrder) VALUES `;
 	cubes.forEach((cube, index) => {
 		if (index < cubes.length - 1) {
-			query.append(sql`(${cube.CubeID}, ${cube.Title}, ${cube.Color}, '${cube.ItemOrder}', ${cube.MetricOrder},`);
+			query.append(sql`(${cube.CubeID}, ${userID}, ${cube.Title}, NULL, '[]', '[]'),`);
 		} else {
-			query.append(sql`(${cube.CubeID}, ${cube.Title}, ${cube.Color}, '${cube.ItemOrder}', ${cube.MetricOrder};`);
+			query.append(sql`(${cube.CubeID}, ${userID}, ${cube.Title}, NULL, '[]', '[]');`);
 		}
 	});
 	const result = await pool.query(query);
 
 	return result;
 }
+
 
 // ===========================================================================
 // 
