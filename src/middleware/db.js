@@ -114,7 +114,15 @@ module.exports.updateAccountToken = async (email, token, type) => {
 // ===========================================================================
 
 module.exports.getUserCubes = async (userID) => {
-	return [];
+	const query = sql`SELECT * FROM CUBE_Cubes WHERE UserID = ${userID}`;
+	const results = await pool.query(query);
+	return results.map(result=>{
+		return {
+			...result,
+			ItemOrder: JSON.parse(result.ItemOrder),
+			MetricOrder: JSON.parse(result.MetricOrder)
+		}
+	});
 }
 
 module.exports.getUserData = async (userID) => {
