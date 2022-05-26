@@ -146,9 +146,9 @@ module.exports.createCubes = async (userID, cubes) => {
 	const query = sql`INSERT INTO CUBE_Cubes (CubeID, UserID, Title, Color, ItemOrder, MetricOrder) VALUES `;
 	cubes.forEach((cube, index) => {
 		if (index < cubes.length - 1) {
-			query.append(sql`(${cube.CubeID}, ${userID}, ${cube.Title}, NULL, '[]', '[]'),`);
+			query.append(sql`(${cube.CubeID}, ${userID}, ${cube.Title}, NULL, '[]', ${JSON.stringify(cube.MetricOrder)}),`);
 		} else {
-			query.append(sql`(${cube.CubeID}, ${userID}, ${cube.Title}, NULL, '[]', '[]');`);
+			query.append(sql`(${cube.CubeID}, ${userID}, ${cube.Title}, NULL, '[]', ${JSON.stringify(cube.MetricOrder)});`);
 		}
 	});
 	const result = await pool.query(query);
@@ -156,6 +156,27 @@ module.exports.createCubes = async (userID, cubes) => {
 	return result;
 }
 
+module.exports.setMetrics = async (metrics) => {
+	const query = sql`INSERT INTO CUBE_Metrics (MetricID, CubeID, Label, Type, Data) VALUES `;
+	metrics.forEach((metric, index) => {
+		if (index < metrics.length - 1) {
+			query.append(sql`(${metric.MetricID}, ${metric.CubeID}, ${metric.Label}, ${metric.Type}, ${JSON.stringify(metric.Data)}),`);
+		} else {
+			query.append(sql`(${metric.MetricID}, ${metric.CubeID}, ${metric.Label}, ${metric.Type}, ${JSON.stringify(metric.Data)});`);
+		}
+	});
+	const result = await pool.query(query);
+
+	return result;
+}
+
+module.exports.getCubeMetrics = async (cubeIDs) => {
+	const query = sql`SELECT * FROM CUBE_Metrics WHERE CubeID in (${cubeIDs})`;
+
+	const result = await pool.query(query);
+
+	return result;
+}
 
 // ===========================================================================
 // 

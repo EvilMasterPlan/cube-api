@@ -7,14 +7,19 @@ module.exports.getMe = asyncHandler(async(req, res, next) => {
 
 	const userID = req.user.UserID;
 	const cubes = await db.getUserCubes(userID);
+	const cubeIDs = cubes.map(cube => {	return cube.CubeID });
 	const data = await db.getUserData(userID);
+	const metrics= await db.getCubeMetrics(cubeIDs);
+
+	console.log("Cubes: ", cubes);
 
 	req.result = {
 		User: {
 			...req.user,
 			Data: data
 		},
-		Cubes: cubes
+		Cubes: cubes,
+		Metrics: metrics
 	};
 
 	next(err);
@@ -40,18 +45,57 @@ module.exports.setUp = asyncHandler(async(req, res, next) => {
 
 	const userID = req.user.UserID;
 	const cubeNames = req.body.cubeNames;
+	let metrics = [];
 
 	// Generate new cubes from the names
 	const cubes = cubeNames.map((cubeName) => {
+		let cubeID = utility.generateItemID('CUB');
+		let metricID1 = utility.generateItemID('MET');
+		let metricID2 = utility.generateItemID('MET');
+		let metricIDs = [metricID1, metricID2];
+
+		metrics.push(
+			{
+				MetricID: metricID1,
+				Label: "Urgency",
+				Type: "Range",
+				Data: {
+					Inc: 1,
+					Max: 9,
+					Min: 1
+				},
+				CubeID: cubeID
+			}
+		)
+
+		metrics.push(
+			{
+				MetricID: metricID2,
+				Label: "Importance",
+				Type: "Range",
+				Data: {
+					Inc: 1,
+					Max: 9,
+					Min: 1
+				},
+				CubeID: cubeID
+			}
+		)
+
 		return {
 			Title: cubeName,
-			CubeID: utility.generateItemID('CUB')
+			CubeID: cubeID,
+			MetricOrder: metricIDs
 		}
 	})
+
+	console.log("Cubes: ", cubes);
 	
 	await db.createCubes(userID, cubes);
 
 	await db.setUserData(userID, "setup", "true");
+
+	await db.setMetrics(metrics);
 
 	next(err);
 });
