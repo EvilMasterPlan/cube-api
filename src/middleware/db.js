@@ -185,6 +185,11 @@ module.exports.getCubeMetrics = async (cubeIDs) => {
 		const entries = await pool.query(query);
 
 		entries.map(entry => {
+			return {
+				...entry,
+				Data: JSON.parse(entry.Data)
+			}
+		}).forEach(entry => {
 			data[entry.MetricID] = entry;
 		});
 	}

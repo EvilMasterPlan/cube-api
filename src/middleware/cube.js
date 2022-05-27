@@ -2,6 +2,45 @@ const db = require('./db.js');
 const asyncHandler = require('express-async-handler');
 const utility = require('./utility.js');
 
+module.exports.createCube = asyncHandler(async(req, res, next) => {
+	let err;
+
+	const userID = req.user.UserID;
+	const metricNames = req.body.metricNames;
+	const cubeID = utility.generateItemID('CUB');
+
+	//console.log("User ID: ", userID, " Metric Names: ", metricNames)
+
+	const metrics = metricNames.map(metricName => {
+		return {
+			MetricID: utility.generateItemID('MET'),
+			Label: metricName,
+			Type: "Range",
+			Data: {
+				Inc: 1,
+				Max: 9,
+				Min: 1
+			},
+			CubeID: cubeID
+		}
+	});
+
+	const newCube = [{
+		Title: 'untitled',
+		CubeID: cubeID,
+		MetricOrder: metrics.map(metric => {
+			return metric.MetricID;
+		})
+	}];
+
+	await db.createCubes(userID, newCube);
+	if (metrics.length > 0) {
+		await db.setMetrics(metrics);
+	}
+
+	next(err);
+})
+
 module.exports.getMe = asyncHandler(async(req, res, next) => {
 	let err;
 

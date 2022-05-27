@@ -52,6 +52,17 @@ router.post('/account/setup', [
 ])
 
 // ===================================
+// CUBES
+// ===================================
+
+router.post('/cube/create', [
+	validate.body(['metricNames']),
+	authentication.verifyAuthentication,
+	cube.createCube,
+	middleware.return
+])
+
+// ===================================
 // USER
 // ===================================
 
