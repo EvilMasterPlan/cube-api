@@ -48,6 +48,14 @@ const expectResults = (rows) => {
 	return results;
 }
 
+const indexObjects = (rows, key) => {
+	let data = {};
+	rows.map(row => {
+		data[row[key]] = row;
+	});
+	return data;
+}
+
 // ===========================================================================
 // 
 // 
@@ -116,24 +124,23 @@ module.exports.updateAccountToken = async (email, token, type) => {
 module.exports.getUserCubes = async (userID) => {
 	const query = sql`SELECT * FROM CUBE_Cubes WHERE UserID = ${userID}`;
 	const results = await pool.query(query);
-	return results.map(result=>{
+	const rows = expectResults(results).map(result => {
 		return {
 			...result,
 			ItemOrder: JSON.parse(result.ItemOrder),
 			MetricOrder: JSON.parse(result.MetricOrder)
 		}
 	});
+
+	return indexObjects(rows, 'CubeID');
 }
 
 module.exports.getUserData = async (userID) => {
 	const query = sql`SELECT * FROM CUBE_UserData WHERE UserID = ${userID}`;
 	const results = await pool.query(query);
-	const entries = expectResults(results);
-	let data = {};
-	entries.map(entry => {
-		data[entry.Key] = entry.Value;
-	});
-	return data;
+	const rows = expectResults(results);
+	
+	return indexObjects(rows, 'Key');
 }
 
 module.exports.setUserData = async (userID, key, value) => {
@@ -171,11 +178,18 @@ module.exports.setMetrics = async (metrics) => {
 }
 
 module.exports.getCubeMetrics = async (cubeIDs) => {
-	const query = sql`SELECT * FROM CUBE_Metrics WHERE CubeID in (${cubeIDs})`;
+	let data = {};
 
-	const result = await pool.query(query);
+	if (cubeIDs.length > 0) {
+		const query = sql`SELECT * FROM CUBE_Metrics WHERE CubeID in (${cubeIDs})`;
+		const entries = await pool.query(query);
 
-	return result;
+		entries.map(entry => {
+			data[entry.MetricID] = entry;
+		});
+	}
+
+	return data;
 }
 
 // ===========================================================================

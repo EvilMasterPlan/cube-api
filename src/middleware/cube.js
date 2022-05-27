@@ -7,11 +7,9 @@ module.exports.getMe = asyncHandler(async(req, res, next) => {
 
 	const userID = req.user.UserID;
 	const cubes = await db.getUserCubes(userID);
-	const cubeIDs = cubes.map(cube => {	return cube.CubeID });
+	const cubeIDs = Object.keys(cubes);
 	const data = await db.getUserData(userID);
-	const metrics= await db.getCubeMetrics(cubeIDs);
-
-	console.log("Cubes: ", cubes);
+	const metrics = await db.getCubeMetrics(cubeIDs);
 
 	req.result = {
 		User: {
@@ -88,13 +86,9 @@ module.exports.setUp = asyncHandler(async(req, res, next) => {
 			MetricOrder: metricIDs
 		}
 	})
-
-	console.log("Cubes: ", cubes);
 	
 	await db.createCubes(userID, cubes);
-
 	await db.setUserData(userID, "setup", "true");
-
 	await db.setMetrics(metrics);
 
 	next(err);
