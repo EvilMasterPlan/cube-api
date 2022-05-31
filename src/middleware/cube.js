@@ -47,8 +47,6 @@ module.exports.deleteCube = asyncHandler(async(req, res, next) => {
 	const userID = req.user.UserID;
 	const cubeIDs = req.body.cubeIDs;
 
-	console.log(req.body);
-
 	await db.deleteCubes(userID, cubeIDs);
 
 	next(err);
