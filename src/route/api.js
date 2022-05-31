@@ -62,6 +62,13 @@ router.post('/cube/create', [
 	middleware.return
 ])
 
+router.post('/cube/delete', [
+	validate.body(['cubeIDs']),
+	authentication.verifyAuthentication,
+	cube.deleteCube,
+	middleware.return
+])
+
 // ===================================
 // USER
 // ===================================
