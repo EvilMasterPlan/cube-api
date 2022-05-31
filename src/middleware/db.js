@@ -163,6 +163,14 @@ module.exports.createCubes = async (userID, cubes) => {
 	return result;
 }
 
+module.exports.deleteCubes = async (userID, cubeIDs) => {
+	const query = sql`delete from CUBE_Cubes where CubeID IN (${cubeIDs}) `;
+
+	const result = await pool.query(query);
+
+	return result;
+}
+
 module.exports.setMetrics = async (metrics) => {
 	const query = sql`INSERT INTO CUBE_Metrics (MetricID, CubeID, Label, Type, Data) VALUES `;
 	metrics.forEach((metric, index) => {

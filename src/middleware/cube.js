@@ -41,6 +41,17 @@ module.exports.createCube = asyncHandler(async(req, res, next) => {
 	next(err);
 })
 
+module.exports.deleteCube = asyncHandler(async(req, res, next) => {
+	let err;
+
+	const userID = req.user.UserID;
+	const cubeIDs = req.body.cubeIDs;
+
+	await db.deleteCubes(userID, cubeIDs);
+
+	next(err);
+})
+
 module.exports.getMe = asyncHandler(async(req, res, next) => {
 	let err;
 
