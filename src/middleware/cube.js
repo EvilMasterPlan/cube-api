@@ -38,6 +38,11 @@ module.exports.createCube = asyncHandler(async(req, res, next) => {
 		await db.setMetrics(metrics);
 	}
 
+	req.result = {
+		UserID: userID,
+		CubeID: cubeID
+	};
+
 	next(err);
 })
 
