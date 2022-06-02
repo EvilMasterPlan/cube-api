@@ -9,8 +9,6 @@ module.exports.createCube = asyncHandler(async(req, res, next) => {
 	const metricNames = req.body.metricNames;
 	const cubeID = utility.generateItemID('CUB');
 
-	//console.log("User ID: ", userID, " Metric Names: ", metricNames)
-
 	const metrics = metricNames.map(metricName => {
 		return {
 			MetricID: utility.generateItemID('MET'),
@@ -42,6 +40,18 @@ module.exports.createCube = asyncHandler(async(req, res, next) => {
 		UserID: userID,
 		CubeID: cubeID
 	};
+
+	next(err);
+})
+
+module.exports.editCubeTitle = asyncHandler(async(req, res, next) => {
+	let err;
+
+	// (['cubeID', 'newTitle']),
+	const cubeID = req.body.cubeID;
+	const newTitle = req.body.newTitle;
+
+	await db.editCubeTitle(cubeID, newTitle);
 
 	next(err);
 })

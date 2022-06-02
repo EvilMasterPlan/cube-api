@@ -62,6 +62,13 @@ router.post('/cube/create', [
 	middleware.return
 ])
 
+router.post('/cube/title/edit', [
+	validate.body(['cubeID', 'newTitle']),
+	authentication.verifyAuthentication,
+	cube.editCubeTitle,
+	middleware.return
+])
+
 router.post('/cube/delete', [
 	validate.body(['cubeIDs']),
 	authentication.verifyAuthentication,

@@ -143,8 +143,16 @@ module.exports.getUserData = async (userID) => {
 	return indexObjects(rows, 'Key');
 }
 
+
 module.exports.setUserData = async (userID, key, value) => {
 	const query = sql`INSERT INTO CUBE_UserData (UserID, \`Key\`, \`Value\`) VALUES (${userID}, ${key}, ${value})`;
+	const result = await pool.query(query);
+	return result;
+}
+
+//editCubeTitle(cubeID, newTitle)
+module.exports.editCubeTitle = async (cubeID, newTitle) => {
+	const query = sql`UPDATE CUBE_Cubes SET Title = ${newTitle} WHERE CubeID = ${cubeID} `;
 	const result = await pool.query(query);
 	return result;
 }
