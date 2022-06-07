@@ -2,6 +2,14 @@ const db = require('./db.js');
 const asyncHandler = require('express-async-handler');
 const utility = require('./utility.js');
 
+const trifurcate = (oldIDs, newIDs) => {
+	return {
+		added: newIDs.filter(id => !oldIDs.includes(id)),
+		removed: oldIDs.filter(id => !newIDs.includes(id)),
+		updated: newIDs.filter(id => oldIDs.includes(id))
+	}
+};
+
 module.exports.createCube = asyncHandler(async(req, res, next) => {
 	let err;
 
@@ -72,18 +80,17 @@ module.exports.getMe = asyncHandler(async(req, res, next) => {
 	let err;
 
 	const userID = req.user.UserID;
-	const cubes = await db.getUserCubes(userID);
-	const cubeIDs = Object.keys(cubes);
 	const data = await db.getUserData(userID);
-	const metrics = await db.getCubeMetrics(cubeIDs);
+	const cubeData = await db.getMyCubes(userID);
 
 	req.result = {
 		User: {
 			...req.user,
 			Data: data
 		},
-		Cubes: cubes,
-		Metrics: metrics
+		Cubes: cubeData.Cubes,
+		Metrics: cubeData.Metrics,
+		Items: cubeData.Items
 	};
 
 	next(err);
@@ -156,6 +163,94 @@ module.exports.setUp = asyncHandler(async(req, res, next) => {
 	await db.createCubes(userID, cubes);
 	await db.setUserData(userID, "setup", "true");
 	await db.setMetrics(metrics);
+
+	next(err);
+});
+
+module.exports.getFullCube = asyncHandler(async(req, res, next) => {
+	let err;
+
+	const cube = await db.getFullCube(cubeID);
+
+	next(err);
+});
+
+// ============================================================
+// YEET CUBE
+// ============================================================
+
+module.exports.persistCube = asyncHandler(async(req, res, next) => {
+	let err;
+
+	const userID = req.user.UserID;
+	const cubeID = req.body.cube.CubeID;
+
+	let aliases = {
+		Cubes: {},
+		Metrics: {},
+		Items: {}
+	};
+
+	const newCube = req.body.cube || {};
+	const newItems = req.body.items || [];
+	const newMetrics = req.body.metrics || [];
+	const newCubeID = newCube.CubeID;
+	
+	const oldCubeData = await db.getFullCube(newCubeID);
+
+	const oldCube = oldCubeData.Cube;
+	const oldItems = oldCubeData.Items;
+	const oldMetrics = oldCubeData.Metrics;
+
+	const oldItemIDs = oldCube.ItemOrder.filter(itemID => itemID in oldItems);
+	const newItemIDs = newCube.ItemOrder.filter(itemID => itemID in newItems);
+
+	const itemSet = trifurcate(oldItemIDs, newItemIDs);
+	const itemIDsToAdd = itemSet.added;
+	const itemIDsToRemove = itemSet.removed;
+	const itemIDsToCheck = itemSet.updated;
+
+	const itemsToAdd = itemIDsToAdd.map(itemID => newItems[itemID]).filter(e => e);
+
+	let itemsToUpdate = itemIDsToCheck.map(itemID => oldItems[itemID]).filter(oldItem => {
+		const itemID = oldItem.ItemID;
+		const newItem = newItems[itemID];
+		return newItem.Status !== oldItem.Status || newItem.Text !== oldItem.Text;
+	});
+
+	if (itemsToAdd.length > 0) {
+		let generatedItemsToAdd = itemsToAdd.map(proposedItem => {
+			const generatedItemID = utility.generateItemID('ITM');
+			aliases.Items[proposedItem.ItemID] = generatedItemID;
+
+			return {
+				...proposedItem,
+				ItemID: generatedItemID,
+				CubeID: newCubeID
+			}
+		});
+
+		await db.updateItems(userID, generatedItemsToAdd);
+	}
+
+	if (itemIDsToRemove.length > 0) {
+		await db.deleteItems(itemIDsToRemove);
+	}
+
+	if (itemsToAdd.length > 0 || itemIDsToRemove.length > 0 || itemsToUpdate.length > 0) {
+		const newItemOrder = newItemIDs.map(itemID => aliases.Items[itemID] || itemID);
+
+		const updatedCube = {
+			...newCube,
+			ItemOrder: newItemOrder
+		};
+		await db.updateCube(updatedCube);
+	}
+
+	req.result = {
+		Cube: {...newCube},
+		Aliases: aliases
+	};
 
 	next(err);
 });

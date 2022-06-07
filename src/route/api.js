@@ -60,21 +60,28 @@ router.post('/cube/create', [
 	authentication.verifyAuthentication,
 	cube.createCube,
 	middleware.return
-])
+]);
 
 router.post('/cube/title/edit', [
 	validate.body(['cubeID', 'newTitle']),
 	authentication.verifyAuthentication,
 	cube.editCubeTitle,
 	middleware.return
-])
+]);
 
 router.post('/cube/delete', [
 	validate.body(['cubeIDs']),
 	authentication.verifyAuthentication,
 	cube.deleteCube,
 	middleware.return
-])
+]);
+
+router.post('/cube/persist', [
+	validate.body(['cube']),
+	authentication.verifyAuthentication,
+	cube.persistCube,
+	middleware.return
+]);
 
 // ===================================
 // USER

@@ -56,6 +56,128 @@ const indexObjects = (rows, key) => {
 	return data;
 }
 
+const assembleCube = (rows) => {
+	let cube = {};
+	let metrics = {};
+	let items = {};
+
+	if (rows && rows.length > 0) {
+		rows.forEach(row => {
+			if (row.CubeID && cube.CubeID == null) {
+				cube = {
+					CubeID: row.CubeID,
+					UserID: row.UserID,
+					Title: row.Title,
+					Color: row.Color,
+					ItemOrder: JSON.parse(row.ItemOrder),
+					MetricOrder: JSON.parse(row.MetricOrder),
+					CreatedAt: row.CubeCreatedAt,
+					UpdatedAt: row.CubeUpdatedAt
+				};
+			}
+
+			const metricID = row.MetricID;
+
+			if (metricID && !(metricID in metrics)) {
+				const metric = {
+					MetricID: metricID,
+					Label: row.Label,
+					Type: row.Type,
+					Data: JSON.parse(row.Data),
+					CreatedAt: row.MetricCreatedAt,
+					UpdatedAt: row.MetricUpdatedAt
+				};
+
+				metrics[metricID] = metric;
+			}
+
+			const itemID = row.ItemID;
+
+			if (itemID && !(itemID in items)) {
+				const item = {
+					ItemID: itemID,
+					Status: row.Status,
+					Text: row.Text,
+					Metrics: JSON.parse(row.Metrics),
+					CreatedAt: row.ItemCreatedAt,
+					UpdatedAt: row.ItemUpdatedAt
+				};
+
+				items[itemID] = item;
+			}
+		});
+	}
+
+	return {
+		Cube: cube,
+		Metrics: metrics,
+		Items: items
+	};
+}
+
+const assembleCubes = (rows) => {
+	let cubes = {};
+	let metrics = {};
+	let items = {};
+
+	if (rows && rows.length > 0) {
+		rows.forEach(row => {
+			const cubeID = row.CubeID;
+
+			if (cubeID && !(cubeID in cubes)) {
+				const cube = {
+					CubeID: row.CubeID,
+					UserID: row.UserID,
+					Title: row.Title,
+					Color: row.Color,
+					ItemOrder: JSON.parse(row.ItemOrder),
+					MetricOrder: JSON.parse(row.MetricOrder),
+					CreatedAt: row.CubeCreatedAt,
+					UpdatedAt: row.CubeUpdatedAt
+				};
+
+				cubes[cubeID] = cube;
+			}
+
+			const metricID = row.MetricID;
+
+			if (metricID && !(metricID in metrics)) {
+				const metric = {
+					MetricID: metricID,
+					Label: row.Label,
+					Type: row.Type,
+					Data: JSON.parse(row.Data),
+					CreatedAt: row.MetricCreatedAt,
+					UpdatedAt: row.MetricUpdatedAt
+				};
+
+				metrics[metricID] = metric;
+			}
+
+			const itemID = row.ItemID;
+
+			if (itemID && !(itemID in items)) {
+				const item = {
+					ItemID: itemID,
+					Status: row.Status,
+					Text: row.Text,
+					Metrics: JSON.parse(row.Metrics),
+					CreatedAt: row.ItemCreatedAt,
+					UpdatedAt: row.ItemUpdatedAt
+				};
+
+				items[itemID] = item;
+			}
+		});
+	}
+
+	return {
+		Cubes: cubes,
+		Metrics: metrics,
+		Items: items
+	};
+}
+
 // ===========================================================================
 // 
 // 
@@ -171,8 +293,40 @@ module.exports.createCubes = async (userID, cubes) => {
 	return result;
 }
 
+module.exports.updateItems = async(userID, items) => {
+	if (items.length > 0) {
+		const query = sql`INSERT INTO CUBE_Items (ItemID, CubeID, Status, Text, Metrics) VALUES `;
+		items.forEach((item, index) => {
+			if (index < items.length - 1) {
+				query.append(sql`(${item.ItemID}, ${item.CubeID}, ${item.Status}, ${item.Text}, ${JSON.stringify(item.Metrics)}),`);
+			} else {
+				query.append(sql`(${item.ItemID}, ${item.CubeID}, ${item.Status}, ${item.Text}, ${JSON.stringify(item.Metrics)})`);
+			}
+		});
+		query.append(sql` ON DUPLICATE KEY UPDATE Status=VALUES(Status), Text=VALUES(Text), Metrics=VALUES(Metrics)`);
+		const result = await pool.query(query);
+		
+		return result;
+	}
+};
+
+module.exports.deleteItems = async(itemIDs) => {
+	if (itemIDs.length > 0) {
+		const query = sql`DELETE FROM CUBE_Items WHERE ItemID IN (${itemIDs})`;
+		const result = await pool.query(query);
+		return result;
+	}
+};
+
+module.exports.updateCube = async(cube) => {
+	const query = sql`INSERT INTO CUBE_Cubes (CubeID, UserID, Title, Color, ItemOrder, MetricOrder) VALUES (${cube.CubeID}, ${cube.UserID}, ${cube.Title}, ${cube.Color}, ${JSON.stringify(cube.ItemOrder)}, ${JSON.stringify(cube.MetricOrder)}) ON DUPLICATE KEY UPDATE Title=VALUES(Title), Color=VALUES(Color), ItemOrder=VALUES(ItemOrder), MetricOrder=VALUES(MetricOrder)`;
+	const result = await pool.query(query);
+
+	return result;
+}
+
 module.exports.deleteCubeMetrics = async (userID, cubeIDs) => {
-	const query = sql`delete from CUBE_Metrics where CubeID IN (${cubeIDs}) `;
+	const query = sql`DELETE FROM CUBE_Metrics where CubeID IN (${cubeIDs}) `;
 
 	const result = await pool.query(query);
 
@@ -227,7 +381,25 @@ module.exports.getCubeMetrics = async (cubeIDs) => {
 	}
 
 	return data;
-}
+};
+
+module.exports.getFullCube = async (cubeID) => {
+	let data = {};
+
+	const query = sql`SELECT c.CubeID, c.UserID, c.Title, c.Color, c.ItemOrder, c.MetricOrder, c.CreatedAt AS CubeCreatedAt, c.UpdatedAt AS CubeUpdatedAt, m.MetricID, m.Label, m.Type, m.Data, m.CreatedAt AS MetricCreatedAt, m.UpdatedAt AS UpdatedAt, i.ItemID, i.Status, i.Text, i.Metrics, i.CreatedAt AS ItemCreatedAt, i.UpdatedAt AS ItemUpdatedAt FROM CUBE_Cubes c LEFT JOIN CUBE_Metrics m ON c.CubeID = m.CubeID LEFT JOIN CUBE_Items i ON c.CubeID = i.CubeID WHERE c.CubeID = ${cubeID};`;
+	const entries = await pool.query(query);
+
+	return assembleCube(entries);
+};
+
+module.exports.getMyCubes = async (userID) => {
+	let data = {};
+
+	const query = sql`SELECT c.CubeID, c.UserID, c.Title, c.Color, c.ItemOrder, c.MetricOrder, c.CreatedAt AS CubeCreatedAt, c.UpdatedAt AS CubeUpdatedAt, m.MetricID, m.Label, m.Type, m.Data, m.CreatedAt AS MetricCreatedAt, m.UpdatedAt AS UpdatedAt, i.ItemID, i.Status, i.Text, i.Metrics, i.CreatedAt AS ItemCreatedAt, i.UpdatedAt AS ItemUpdatedAt FROM CUBE_Cubes c LEFT JOIN CUBE_Metrics m ON c.CubeID = m.CubeID LEFT JOIN CUBE_Items i ON c.CubeID = i.CubeID WHERE c.UserID = ${userID};`;
+	const entries = await pool.query(query);
+
+	return assembleCubes(entries);
+};
 
 // ===========================================================================
 // 
