@@ -212,9 +212,9 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 
 	const itemsToAdd = itemIDsToAdd.map(itemID => newItems[itemID]).filter(e => e);
 
-	let itemsToUpdate = itemIDsToCheck.map(itemID => oldItems[itemID]).filter(oldItem => {
-		const itemID = oldItem.ItemID;
-		const newItem = newItems[itemID];
+	let itemsToUpdate = itemIDsToCheck.map(itemID => newItems[itemID]).filter(newItem => {
+		const itemID = newItem.ItemID;
+		const oldItem = oldItems[itemID];
 		return newItem.Status !== oldItem.Status || newItem.Text !== oldItem.Text;
 	});
 
@@ -235,6 +235,11 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 
 	if (itemIDsToRemove.length > 0) {
 		await db.deleteItems(itemIDsToRemove);
+	}
+
+	//console.log("Items to update: ", itemsToUpdate);
+	if (itemsToUpdate.length > 0) {
+		await db.updateItems(userID, itemsToUpdate);
 	}
 
 	if (itemsToAdd.length > 0 || itemIDsToRemove.length > 0 || itemsToUpdate.length > 0) {
