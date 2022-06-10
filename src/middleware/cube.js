@@ -249,7 +249,7 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 	if (itemsToAdd.length > 0 || itemIDsToRemove.length > 0 || itemsToUpdate.length > 0) {
 		const newItemOrder = newItemIDs.map(itemID => aliases.Items[itemID] || itemID);
 
-		const updatedCube = {
+		updatedCube = {
 			...newCube,
 			ItemOrder: newItemOrder
 		};
