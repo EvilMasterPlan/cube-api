@@ -216,7 +216,7 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 		const itemID = newItem.ItemID;
 		const oldItem = oldItems[itemID];
 
-		return newItem.Status !== oldItem.Status || newItem.Text !== oldItem.Text || JSON.stringify(oldItem.Metrics) !== JSON.stringify(newitem.Metrics);
+		return newItem.Status !== oldItem.Status || newItem.Text !== oldItem.Text || JSON.stringify(oldItem.Metrics) !== JSON.stringify(newItem.Metrics);
 	});
 
 	if (itemsToAdd.length > 0) {
