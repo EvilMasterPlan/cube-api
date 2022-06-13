@@ -310,6 +310,31 @@ module.exports.updateItems = async(userID, items) => {
 	}
 };
 
+module.exports.updateMetrics = async(userID, metrics) => {
+	if (metrics.length > 0) {
+		const query = sql`INSERT INTO CUBE_Metrics (MetricID, CubeID, Status, Text, Metrics) VALUES `;
+		metrics.forEach((metric, index) => {
+			if (index < metrics.length - 1) {
+				query.append(sql`(${metric.MetricID}, ${metric.CubeID}, ${metric.Label}, ${metric.Type}, ${JSON.stringify(metric.Data)}),`);
+			} else {
+				query.append(sql`(${metric.MetricID}, ${metric.CubeID}, ${metric.Label}, ${metric.Type}, ${JSON.stringify(metric.Data)})`);
+			}
+		});
+		query.append(sql` ON DUPLICATE KEY UPDATE Label=VALUES(Label), Type=VALUES(Type), Data=VALUES(Data)`);
+		const result = await pool.query(query);
+		
+		return result;
+	}
+};
+
+module.exports.deleteMetrics = async(metricIDs) => {
+	if (metricIDs.length > 0) {
+		const query = sql`DELETE FROM CUBE_Metrics WHERE MetricID IN (${metricIDs})`;
+		const result = await pool.query(query);
+		return result;
+	}
+};
+
 module.exports.deleteItems = async(itemIDs) => {
 	if (itemIDs.length > 0) {
 		const query = sql`DELETE FROM CUBE_Items WHERE ItemID IN (${itemIDs})`;
