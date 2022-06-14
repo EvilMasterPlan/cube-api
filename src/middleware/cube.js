@@ -202,6 +202,53 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 	const oldItems = oldCubeData.Items;
 	const oldMetrics = oldCubeData.Metrics;
 
+	// ============================================================
+	// UPDATE METRICS
+	// ============================================================
+
+	const oldMetricIDs = oldCube.MetricOrder.filter(metricID => metricID in oldMetrics);
+	const newMetricIDs = newCube.MetricOrder.filter(metricID => metricID in newMetrics);
+
+	let metricSet = trifurcate(oldMetricIDs, newMetricIDs);
+	const metricIDsToAdd = metricSet.added;
+	const metricIDsToRemove = metricSet.removed;
+	const metricIDsToCheck = metricSet.updated;
+
+	const metricsToAdd = metricIDsToAdd.map(metricID => newMetrics[metricID]).filter(e => e);
+
+	let metricsToUpdate = metricIDsToCheck.map(metricID => newMetrics[metricID]).filter(newMetric => {
+		const metricID = newMetric.MetricID;
+		const oldMetric = oldMetrics[metricID];
+		return newMetric.Label !== oldMetric.Label;
+	});
+
+	if (metricsToAdd.length > 0) {
+		let generatedMetricsToAdd = metricsToAdd.map(proposedMetric => {
+			const generatedMetricID = utility.generateItemID('MTR');
+			aliases.Metrics[proposedMetric.MetricID] = generatedMetricID;
+
+			return {
+				...proposedMetric,
+				MetricID: generatedMetricID,
+				CubeID: newCubeID
+			}
+		});
+
+		await db.updateMetrics(userID, generatedMetricsToAdd);
+	}
+
+	if (metricIDsToRemove.length > 0) {
+		await db.deleteMetrics(metricIDsToRemove);
+	}
+
+	if (metricsToUpdate.length > 0) {
+		await db.updateMetrics(userID, metricsToUpdate);
+	}
+
+	// ============================================================
+	// UPDATE ITEMS
+	// ============================================================
+
 	const oldItemIDs = oldCube.ItemOrder.filter(itemID => itemID in oldItems);
 	const newItemIDs = newCube.ItemOrder.filter(itemID => itemID in newItems);
 
@@ -242,6 +289,10 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 		await db.updateItems(userID, itemsToUpdate);
 	}
 
+	// ============================================================
+	// UPDATE CUBE
+	// ============================================================
+
 	let updatedCube = {
 		...newCube
 	};
@@ -253,45 +304,6 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 			...newCube,
 			ItemOrder: newItemOrder
 		};
-	}
-
-	const oldMetricIDs = oldCube.MetricOrder.filter(metricID => metricID in oldMetrics);
-	const newMetricIDs = newCube.MetricOrder.filter(metricID => metricID in newMetrics);
-
-	let metricSet = trifurcate(oldMetricIDs, newMetricIDs);
-	const metricIDsToAdd = metricSet.added;
-	const metricIDsToRemove = metricSet.removed;
-	const metricIDsToCheck = metricSet.updated;
-
-	const metricsToAdd = metricIDsToAdd.map(metricID => newMetrics[metricID]).filter(e => e);
-
-	let metricsToUpdate = metricIDsToCheck.map(metricID => newMetrics[metricID]).filter(newMetric => {
-		const metricID = newMetric.MetricID;
-		const oldMetric = oldMetrics[metricID];
-		return newMetric.Label !== oldMetric.Label;
-	});
-
-	if (metricsToAdd.length > 0) {
-		let generatedMetricsToAdd = metricsToAdd.map(proposedMetric => {
-			const generatedMetricID = utility.generateItemID('MTR');
-			aliases.Metrics[proposedMetric.MetricID] = generatedMetricID;
-
-			return {
-				...proposedMetric,
-				MetricID: generatedMetricID,
-				CubeID: newCubeID
-			}
-		});
-
-		await db.updateMetrics(userID, generatedMetricsToAdd);
-	}
-
-	if (metricIDsToRemove.length > 0) {
-		await db.deleteMetrics(metricIDsToRemove);
-	}
-
-	if (metricsToUpdate.length > 0) {
-		await db.updateMetrics(userID, metricsToUpdate);
 	}
 
 	await db.updateCube(updatedCube);
