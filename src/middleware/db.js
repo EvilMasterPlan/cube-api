@@ -312,7 +312,7 @@ module.exports.updateItems = async(userID, items) => {
 
 module.exports.updateMetrics = async(userID, metrics) => {
 	if (metrics.length > 0) {
-		const query = sql`INSERT INTO CUBE_Metrics (MetricID, CubeID, Status, Text, Metrics) VALUES `;
+		const query = sql`INSERT INTO CUBE_Metrics (MetricID, CubeID, Label, Type, Data) VALUES `;
 		metrics.forEach((metric, index) => {
 			if (index < metrics.length - 1) {
 				query.append(sql`(${metric.MetricID}, ${metric.CubeID}, ${metric.Label}, ${metric.Type}, ${JSON.stringify(metric.Data)}),`);
