@@ -118,51 +118,53 @@ module.exports.setUp = asyncHandler(async(req, res, next) => {
 	const cubeNames = req.body.cubeNames;
 	let metrics = [];
 
-	// Generate new cubes from the names
-	const cubes = cubeNames.map((cubeName) => {
-		let cubeID = utility.generateItemID('CUB');
-		let metricID1 = utility.generateItemID('MET');
-		let metricID2 = utility.generateItemID('MET');
-		let metricIDs = [metricID1, metricID2];
+	if (cubeNames.length > 0) {
+		const cubes = cubeNames.map((cubeName) => {
+			let cubeID = utility.generateItemID('CUB');
+			let metricID1 = utility.generateItemID('MET');
+			let metricID2 = utility.generateItemID('MET');
+			let metricIDs = [metricID1, metricID2];
 
-		metrics.push(
-			{
-				MetricID: metricID1,
-				Label: "Urgency",
-				Type: "Range",
-				Data: {
-					Inc: 1,
-					Max: 9,
-					Min: 1
-				},
-				CubeID: cubeID
+			metrics.push(
+				{
+					MetricID: metricID1,
+					Label: "Urgency",
+					Type: "Range",
+					Data: {
+						Inc: 1,
+						Max: 9,
+						Min: 1
+					},
+					CubeID: cubeID
+				}
+			)
+
+			metrics.push(
+				{
+					MetricID: metricID2,
+					Label: "Importance",
+					Type: "Range",
+					Data: {
+						Inc: 1,
+						Max: 9,
+						Min: 1
+					},
+					CubeID: cubeID
+				}
+			)
+
+			return {
+				Title: cubeName,
+				CubeID: cubeID,
+				MetricOrder: metricIDs
 			}
-		)
+		})
+		
+		await db.createCubes(userID, cubes);
+		await db.setMetrics(metrics);
+	}
 
-		metrics.push(
-			{
-				MetricID: metricID2,
-				Label: "Importance",
-				Type: "Range",
-				Data: {
-					Inc: 1,
-					Max: 9,
-					Min: 1
-				},
-				CubeID: cubeID
-			}
-		)
-
-		return {
-			Title: cubeName,
-			CubeID: cubeID,
-			MetricOrder: metricIDs
-		}
-	})
-	
-	await db.createCubes(userID, cubes);
 	await db.setUserData(userID, "setup", "true");
-	await db.setMetrics(metrics);
 
 	next(err);
 });
@@ -208,6 +210,7 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 
 	const oldMetricIDs = oldCube.MetricOrder.filter(metricID => metricID in oldMetrics);
 	const newMetricIDs = newCube.MetricOrder.filter(metricID => metricID in newMetrics);
+	newCube.MetricOrder = newMetricIDs;
 
 	let metricSet = trifurcate(oldMetricIDs, newMetricIDs);
 	const metricIDsToAdd = metricSet.added;
@@ -223,18 +226,7 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 	});
 
 	if (metricsToAdd.length > 0) {
-		let generatedMetricsToAdd = metricsToAdd.map(proposedMetric => {
-			const generatedMetricID = utility.generateItemID('MTR');
-			aliases.Metrics[proposedMetric.MetricID] = generatedMetricID;
-
-			return {
-				...proposedMetric,
-				MetricID: generatedMetricID,
-				CubeID: newCubeID
-			}
-		});
-
-		await db.updateMetrics(userID, generatedMetricsToAdd);
+		await db.updateMetrics(userID, metricsToAdd);
 	}
 
 	if (metricIDsToRemove.length > 0) {
@@ -251,6 +243,7 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 
 	const oldItemIDs = oldCube.ItemOrder.filter(itemID => itemID in oldItems);
 	const newItemIDs = newCube.ItemOrder.filter(itemID => itemID in newItems);
+	newCube.ItemOrder = newItemIDs;
 
 	const itemSet = trifurcate(oldItemIDs, newItemIDs);
 	const itemIDsToAdd = itemSet.added;
@@ -267,18 +260,7 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 	});
 
 	if (itemsToAdd.length > 0) {
-		let generatedItemsToAdd = itemsToAdd.map(proposedItem => {
-			const generatedItemID = utility.generateItemID('ITM');
-			aliases.Items[proposedItem.ItemID] = generatedItemID;
-
-			return {
-				...proposedItem,
-				ItemID: generatedItemID,
-				CubeID: newCubeID
-			}
-		});
-
-		await db.updateItems(userID, generatedItemsToAdd);
+		await db.updateItems(userID, itemsToAdd);
 	}
 
 	if (itemIDsToRemove.length > 0) {
@@ -293,24 +275,10 @@ module.exports.persistCube = asyncHandler(async(req, res, next) => {
 	// UPDATE CUBE
 	// ============================================================
 
-	let updatedCube = {
-		...newCube
-	};
-
-	if (itemsToAdd.length > 0 || itemIDsToRemove.length > 0 || itemsToUpdate.length > 0) {
-		const newItemOrder = newItemIDs.map(itemID => aliases.Items[itemID] || itemID);
-
-		updatedCube = {
-			...newCube,
-			ItemOrder: newItemOrder
-		};
-	}
-
-	await db.updateCube(updatedCube);
+	await db.updateCube(newCube);
 
 	req.result = {
-		Cube: {...newCube},
-		Aliases: aliases
+		Cube: newCube,
 	};
 
 	next(err);
