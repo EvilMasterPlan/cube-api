@@ -32,7 +32,7 @@ module.exports.createCube = asyncHandler(async(req, res, next) => {
 	});
 
 	const newCube = [{
-		Title: 'untitled',
+		Title: '',
 		CubeID: cubeID,
 		MetricOrder: metrics.map(metric => {
 			return metric.MetricID;
