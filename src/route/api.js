@@ -7,6 +7,7 @@ const authentication = require('../middleware/authentication.js');
 const authorization = require('../middleware/authorization.js');
 const validate = require('../middleware/validate.js');
 const analytics = require('../middleware/analytics.js');
+const stripe = require('../middleware/stripe.js');
 const cube = require('../middleware/cube.js');
 
 // ===================================
@@ -16,6 +17,36 @@ const cube = require('../middleware/cube.js');
 router.get('/test', [
 	authentication.verifyAuthentication,
 	middleware.getTestData,
+	middleware.return
+]);
+
+// ===================================
+// Payments
+// ===================================
+
+router.post('/payments/create-session', [
+	authentication.verifyAuthentication,
+	validate.body(['type']),
+	stripe.createSession,
+	middleware.return
+]);
+
+router.post('/payments/manage-billing', [
+	authentication.verifyAuthentication,
+	validate.body('customerID'),
+	stripe.manageBilling,
+	middleware.return
+]);
+
+router.post('/payments/event', [
+	validate.body(['data', 'type']),
+	stripe.handleEvent,
+	middleware.return
+]);
+
+router.post('/payments/event/test', [
+	validate.body(['data', 'type']),
+	stripe.handleTestEvent,
 	middleware.return
 ]);
 

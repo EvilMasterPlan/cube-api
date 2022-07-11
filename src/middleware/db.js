@@ -236,6 +236,38 @@ module.exports.updateAccountToken = async (email, token, type) => {
 };
 
 // ===========================================================================
+// Purchases
+// ===========================================================================
+
+module.exports.getPurchase = async (userID, product, tier) => {
+	const query = sql`SELECT * FROM CUBE_Purchases WHERE UserID = ${userID} AND Product = ${product} AND Tier = ${tier}`;
+	const result = await pool.query(query);
+
+	return expectResult(result);
+}
+
+module.exports.createPurchase = async (purchaseID, stripePurchaseID, stripeCustomerID, userID, product, tier, status) => {
+	const query = sql`INSERT INTO CUBE_Purchases (PurchaseID, StripePurchaseID, StripeCustomerID, UserID, Product, Tier, Status) VALUES (${purchaseID}, ${stripePurchaseID}, ${stripeCustomerID}, ${userID}, ${product}, ${tier}, ${status})`;
+	const result = await pool.query(query);
+
+	return result;
+}
+
+module.exports.getUserPurchases = async (userID) => {
+	const query = sql`SELECT * FROM CUBE_Purchases WHERE UserID = ${userID}`;
+	const results = await pool.query(query);
+
+	return results;
+};
+
+module.exports.updatePurchaseStatus = async (stripePurchaseID, stripeCustomerID, status, periodEnd) => {
+	const query = sql`UPDATE CUBE_Purchases SET Status=${status}, PeriodEndsAt=${periodEnd} WHERE StripePurchaseID = ${stripePurchaseID} AND StripeCustomerID = ${stripeCustomerID}`;
+	const result = await pool.query(query);
+
+	return result;
+};
+
+// ===========================================================================
 // 
 // 
 // 			~Cubes
