@@ -7,6 +7,9 @@ const asyncHandler = require('express-async-handler');
 const utility = require('./utility.js');
 const moment = require('moment');
 
+console.log(stripeSecretKey);
+console.log(stripeSigningSecret);
+
 module.exports.createSession = asyncHandler(async(req, res, next) => {
   let err;
 
@@ -16,7 +19,7 @@ module.exports.createSession = asyncHandler(async(req, res, next) => {
 
   switch(type) {
     case 'test_sub':
-      priceID = 'price_1Im5HVEw1JWClEbEAm0ifthr';
+      priceID = 'price_1LKSTdF16zTTfX72cIc1c1Va';
       break;
     case 'cube_month_1':
       priceID = 'price_1LKSkgF16zTTfX72gu7wHG5Z';
@@ -46,8 +49,8 @@ module.exports.createSession = asyncHandler(async(req, res, next) => {
           quantity: 1,
         },
       ],
-      success_url: 'https://www.prioritycube.com/account/subscribed',
-      cancel_url: 'https://www.prioritycube.com/account/canceled',
+      success_url: 'https://www.prioritycube.com/account?sub=true',
+      cancel_url: 'https://www.prioritycube.com/account',
     });
 
     req.result = {
