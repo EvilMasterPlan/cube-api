@@ -40,12 +40,12 @@ module.exports.sendNewAccountNotification = asyncHandler(async(req, res, next) =
 	const from = "no-reply@prioritycube.com";
 	const fromName = "Team Cube";
 	const subject = `Welcome to Priority Cube`;
-	const message = `You have a cool new cube to try out! Do so here: www.prioritycube.com`;
+	const message = `Thanks for trying Priority Cube, a simple tool to prioritize anything that matters to you! You can check out your cubes at: www.prioritycube.com`;
 
 	let html = `
 		<html>
 			<div></div>
-			You have a cool new cube to try out! Do so here:
+			Thanks for trying Priority Cube, a simple tool to prioritize anything that matters to you! You can check out your cubes at:
 			www.prioritycube.com
 			<br/>
 			<br/>
@@ -66,9 +66,13 @@ module.exports.sendResetPasswordNotification = asyncHandler(async(req, res, next
 	const from = "no-reply@prioritycube.com";
 	const fromName = "Team Cube";
 	const subject = `Priority Cube Reset: ${req.token}`;
-	const message = ``;
+	const message = `You've requested a password reset. Enter the code ${req.token} to reset your password.`;
 
-	let html = ``;
+	let html = `
+		<html>
+			<div>You've requested a password reset. Enter the code ${req.token} to proceed.</div>
+		</html>
+	`;
 
 	await aws.sendEmail(to, from, fromName, subject, message, html);
 	await db.markEmailAsSent(utility.generateItemID('OBX'), 'cube', to, 'ResetPassword');

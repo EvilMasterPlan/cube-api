@@ -80,7 +80,30 @@ router.post('/account/setup', [
 	cube.checkSetup,
 	cube.setUp,
 	middleware.return
-])
+]);
+
+router.post('/account/password/reset', [
+	validate.body(['email', 'verificationCode', 'newPasswordHash']),
+	authentication.verifyPasswordResetCode,
+	authentication.resetPassword,
+	authentication.clearAccountResetToken,
+	authentication.createSession,
+	middleware.return
+]);
+
+router.post('/account/password/request-reset', [
+	validate.body(['email']),
+	authentication.requestPasswordReset,
+	authentication.generateResetToken,
+	email.sendResetPasswordNotification,
+	middleware.return
+]);
+
+router.post('/account/password/verify-reset', [
+	validate.body(['email', 'verificationCode']),
+	authentication.verifyPasswordResetCode,
+	middleware.return
+]);
 
 // ===================================
 // CUBES
