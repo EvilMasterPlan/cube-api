@@ -297,6 +297,13 @@ module.exports.getUserData = async (userID) => {
 	return indexObjects(rows, 'Key');
 }
 
+module.exports.getUserPurchases = async (userID) => {
+	const query = sql`SELECT * FROM CUBE_Purchases WHERE UserID = ${userID}`;
+	const results = await pool.query(query);
+	const rows = expectResults(results);
+
+	return rows;
+}
 
 module.exports.setUserData = async (userID, key, value) => {
 	const query = sql`INSERT INTO CUBE_UserData (UserID, \`Key\`, \`Value\`) VALUES (${userID}, ${key}, ${value})`;

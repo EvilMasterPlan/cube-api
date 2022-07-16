@@ -7,9 +7,6 @@ const asyncHandler = require('express-async-handler');
 const utility = require('./utility.js');
 const moment = require('moment');
 
-console.log(stripeSecretKey);
-console.log(stripeSigningSecret);
-
 module.exports.createSession = asyncHandler(async(req, res, next) => {
   let err;
 
