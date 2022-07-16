@@ -81,12 +81,14 @@ module.exports.getMe = asyncHandler(async(req, res, next) => {
 
 	const userID = req.user.UserID;
 	const data = await db.getUserData(userID);
+	const purchases = await db.getUserPurchases(userID);
 	const cubeData = await db.getMyCubes(userID);
 
 	req.result = {
 		User: {
 			...req.user,
-			Data: data
+			Data: data,
+			Purchases: purchases
 		},
 		Cubes: cubeData.Cubes,
 		Metrics: cubeData.Metrics,
