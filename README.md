@@ -1,3 +1,4 @@
 # cube-api
-Priority Cube UI
 
+The API supporting Priority Cubes - a simple way to prioritize anything!
+www.prioritycube.com
